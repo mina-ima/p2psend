@@ -68,5 +68,5 @@ P2P Send（仮）
 ⚙️ サーバー構成
 •シグナリングサーバーとしてPeerJS Serverを使用
 •ポート: 9000
-•パス: /myapp
+•パス: /peerjs
 •独立したNode.jsプロセスとして運用
