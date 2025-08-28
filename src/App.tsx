@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import Peer from 'peerjs';
 import './App.css';
 
@@ -7,8 +7,8 @@ function App() {
   const [remoteId, setRemoteId] = useState('');
   const [peer, setPeer] = useState<Peer | null>(null);
   const [connection, setConnection] = useState<any>(null);
-  const [message, setMessage] = useState('');
-  const [receivedMessages, setReceivedMessages] = useState<string[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [receivedFiles, setReceivedFiles] = useState<{ name: string; url: string }[]>([]);
 
   useEffect(() => {
     const newPeer = new Peer({
@@ -26,9 +26,13 @@ function App() {
     newPeer.on('connection', (conn) => {
       console.log('Incoming connection from:', conn.peer);
       setConnection(conn);
-      conn.on('data', (data) => {
-        console.log('Received:', data);
-        setReceivedMessages((prevMessages) => [...prevMessages, data as string]);
+      conn.on('data', (data: any) => {
+        // Assuming data is { file: ArrayBuffer, fileName: string, type: string }
+        const { file, fileName, type } = data;
+        const blob = new Blob([file], { type });
+        const url = URL.createObjectURL(blob);
+        setReceivedFiles((prevFiles) => [...prevFiles, { name: fileName, url }]);
+        console.log('File received:', fileName);
       });
       conn.on('open', () => {
         console.log('Connection opened with:', conn.peer);
@@ -52,9 +56,12 @@ function App() {
     if (peer && remoteId) {
       const conn = peer.connect(remoteId);
       setConnection(conn);
-      conn.on('data', (data) => {
-        console.log('Received:', data);
-        setReceivedMessages((prevMessages) => [...prevMessages, data as string]);
+       conn.on('data', (data: any) => {
+        const { file, fileName, type } = data;
+        const blob = new Blob([file], { type });
+        const url = URL.createObjectURL(blob);
+        setReceivedFiles((prevFiles) => [...prevFiles, { name: fileName, url }]);
+        console.log('File received:', fileName);
       });
       conn.on('open', () => {
         console.log('Connection opened with:', conn.peer);
@@ -65,10 +72,27 @@ function App() {
     }
   };
 
-  const sendMessage = () => {
-    if (connection && message) {
-      connection.send(message);
-      setMessage('');
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const sendFile = () => {
+    if (connection && selectedFile) {
+      // To send a file, we need to read it as an ArrayBuffer
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const fileData = event.target?.result;
+        if (fileData) {
+          connection.send({
+            file: fileData,
+            fileName: selectedFile.name,
+            type: selectedFile.type,
+          });
+        }
+      };
+      reader.readAsArrayBuffer(selectedFile);
     }
   };
 
@@ -90,19 +114,20 @@ function App() {
           <div>
             <p>Connected to: {connection.peer}</p>
             <div>
-              <input
-                type="text"
-                placeholder="Message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-              <button onClick={sendMessage}>Send</button>
+              <input type="file" onChange={handleFileChange} />
+              <button onClick={sendFile} disabled={!selectedFile}>
+                Send File
+              </button>
             </div>
             <div>
-              <h3>Received Messages:</h3>
+              <h3>Received Files:</h3>
               <ul>
-                {receivedMessages.map((msg, index) => (
-                  <li key={index}>{msg}</li>
+                {receivedFiles.map((file, index) => (
+                  <li key={index}>
+                    <a href={file.url} download={file.name}>
+                      {file.name}
+                    </a>
+                  </li>
                 ))}
               </ul>
             </div>
