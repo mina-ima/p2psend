@@ -4,15 +4,78 @@ import { QRCodeCanvas } from 'qrcode.react'; // Corrected import
 import { Scanner } from '@yudiel/react-qr-scanner';
 import './App.css';
 
+const CHUNK_SIZE = 16 * 1024; // 16KB
+
 function App() {
   const [myId, setMyId] = useState('');
   const [remoteId, setRemoteId] = useState('');
   const [peer, setPeer] = useState<Peer | null>(null);
   const [connection, setConnection] = useState<any>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [receivedFiles, setReceivedFiles] = useState<{ name: string; url: string }[]>([]);
   const [notification, setNotification] = useState('');
   const [scanResult, setScanResult] = useState<string | null>(null);
+
+  // Temporary storage for incoming file chunks
+  const [incomingFiles, setIncomingFiles] = useState<{[key: string]: {chunks: ArrayBuffer[], metadata: any, receivedSize: number}}>({});
+
+  // 共通のデータハンドラ関数
+  const handleIncomingData = (data: any) => {
+    if (data.type === 'file-metadata') {
+      // Initialize incoming file buffer
+      setIncomingFiles(prev => ({
+        ...prev,
+        [data.fileName]: { chunks: [], metadata: data, receivedSize: 0 }
+      }));
+      setNotification(`Receiving file: ${data.fileName}`);
+    } else if (data.type === 'file-chunk') {
+      setIncomingFiles(prev => {
+        const fileData = prev[data.fileName];
+        if (fileData) {
+          // 既にこのチャンクが受信されているかチェック
+          if (fileData.chunks[data.chunkIndex]) {
+            console.warn(`Duplicate chunk received for ${data.fileName}, index ${data.chunkIndex}. Skipping.`);
+            return prev; // 重複なのでスキップ
+          }
+
+          console.log('Received chunk:', data.fileName, data.chunkIndex, data.chunk, data.chunk.byteLength);
+          fileData.chunks[data.chunkIndex] = data.chunk;
+          fileData.receivedSize += data.chunk.byteLength;
+
+          console.log('Current incomingFiles state for file:', fileData);
+          console.log('Total received size:', fileData.receivedSize, 'Expected size:', fileData.metadata.fileSize);
+
+          // Check if all chunks received
+          if (fileData.receivedSize === fileData.metadata.fileSize) {
+            const completeBlob = new Blob(fileData.chunks, { type: fileData.metadata.fileType });
+            const url = URL.createObjectURL(completeBlob);
+            // Trigger automatic download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileData.metadata.fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url); // Clean up the object URL
+
+            setReceivedFiles((prevFiles) => [...prevFiles, { name: fileData.metadata.fileName, url }]);
+            setNotification(`File received: ${fileData.metadata.fileName}`);
+            setTimeout(() => setNotification(''), 3000);
+            console.log('File received:', fileData.metadata.fileName);
+            // Clean up temporary storage
+            const newIncomingFiles = { ...prev };
+            delete newIncomingFiles[data.fileName];
+            return newIncomingFiles;
+          }
+        }
+        return prev;
+      });
+    } else {
+      // Handle other types of data if any
+      console.log('Received non-file data:', data);
+    }
+  };
+
 
   useEffect(() => {
     const newPeer = new Peer({
@@ -30,15 +93,7 @@ function App() {
     const handleNewConnection = (conn: any) => {
       console.log('Incoming connection from:', conn.peer);
       setConnection(conn);
-      conn.on('data', (data: any) => {
-        const { file, fileName, type } = data;
-        const blob = new Blob([file], { type });
-        const url = URL.createObjectURL(blob);
-        setReceivedFiles((prevFiles) => [...prevFiles, { name: fileName, url }]);
-        setNotification(`File received: ${fileName}`);
-        setTimeout(() => setNotification(''), 3000); // Notification disappears after 3 seconds
-        console.log('File received:', fileName);
-      });
+      conn.on('data', handleIncomingData); // 共通ハンドラを呼び出す
       conn.on('open', () => {
         console.log('Connection opened with:', conn.peer);
       });
@@ -63,15 +118,7 @@ function App() {
     if (peer && remoteId) {
       const conn = peer.connect(remoteId);
       setConnection(conn);
-      conn.on('data', (data: any) => {
-        const { file, fileName, type } = data;
-        const blob = new Blob([file], { type });
-        const url = URL.createObjectURL(blob);
-        setReceivedFiles((prevFiles) => [...prevFiles, { name: fileName, url }]);
-        setNotification(`File received: ${fileName}`);
-        setTimeout(() => setNotification(''), 3000);
-        console.log('File received:', fileName);
-      });
+      conn.on('data', handleIncomingData); // 共通ハンドラを呼び出す
       conn.on('open', () => {
         console.log('Connection opened with:', conn.peer);
       });
@@ -83,32 +130,72 @@ function App() {
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setSelectedFile(e.target.files[0]);
+      setSelectedFiles(Array.from(e.target.files));
     }
   };
 
-  const sendFile = () => {
-    if (connection && selectedFile) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const fileData = event.target?.result;
-        if (fileData) {
-          connection.send({
-            file: fileData,
-            fileName: selectedFile.name,
-            type: selectedFile.type,
+  const sendFile = async () => {
+    if (connection && selectedFiles.length > 0) {
+      for (const file of selectedFiles) {
+        console.log('Sending file metadata:', file.name, file.type, file.size); // 追加
+        // Send file metadata first
+        connection.send({
+          type: 'file-metadata',
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+        });
+
+        let offset = 0;
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+        while (offset < file.size) {
+          // フロー制御: バッファが一定量を超えたら待機
+          // PeerJSのDataConnectionにはbufferedAmountLowThresholdがないため、手動で待機
+          while (connection.bufferedAmount > connection.peerConnection.sctp.maxMessageSize * 2) { // 適当な閾値
+            await new Promise(resolve => setTimeout(resolve, 100)); // 100ms待機
+          }
+
+          const chunk = file.slice(offset, offset + CHUNK_SIZE);
+          const reader = new FileReader();
+
+          await new Promise<void>((resolve, reject) => {
+            reader.onload = (e) => {
+              if (e.target && e.target.result) {
+                connection.send({
+                  type: 'file-chunk',
+                  fileName: file.name,
+                  chunkIndex: Math.floor(offset / CHUNK_SIZE),
+                  totalChunks: totalChunks,
+                  chunk: e.target.result, // ArrayBuffer
+                });
+                offset += CHUNK_SIZE;
+                resolve();
+              } else {
+                reject(new Error("Failed to read chunk."));
+              }
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(chunk);
           });
         }
-      };
-      reader.readAsArrayBuffer(selectedFile);
+      }
+      setSelectedFiles([]); // Clear selected files after sending
     }
   };
 
-  const handleScan = (result: any) => {
-    if (result) {
-      setScanResult(result.text);
-      setRemoteId(result.text); // Automatically set remoteId from scan
-      console.log('QR Code Scanned:', result.text);
+  const handleScan = (detectedCodes: any[]) => { // result を detectedCodes に変更し、型を明確に
+    if (detectedCodes && detectedCodes.length > 0) {
+      const scannedText = detectedCodes[0].rawValue; // 最初の検出結果の rawValue を取得
+      if (scannedText) {
+        setScanResult(scannedText);
+        setRemoteId(scannedText); // Automatically set remoteId from scan
+        console.log('QR Code Scanned:', scannedText);
+      } else {
+        console.log('QR Code Scanned: No text found in rawValue', detectedCodes);
+      }
+    } else {
+      console.log('QR Code Scanned: No detected codes or invalid result', detectedCodes);
     }
   };
 
@@ -166,10 +253,13 @@ function App() {
           <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px', width: '100%', maxWidth: '800px' }}>
             <h2>Connected to: {connection.peer}</h2>
             <div>
-              <input type="file" onChange={handleFileChange} style={{ marginRight: '10px' }} />
-              <button onClick={sendFile} disabled={!selectedFile} style={{ padding: '8px 15px' }}>
+              <input type="file" onChange={handleFileChange} multiple style={{ marginRight: '10px' }} />
+              <button onClick={sendFile} disabled={selectedFiles.length === 0} style={{ padding: '8px 15px' }}>
                 Send File
               </button>
+              {selectedFiles.length > 0 && (
+                <p>{selectedFiles.length} file(s) selected.</p>
+              )}
             </div>
             <div style={{ marginTop: '20px' }}>
               <h3>Received Files:</h3>
