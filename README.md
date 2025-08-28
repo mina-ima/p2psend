@@ -1,53 +1,53 @@
 # p2psend
 
-A peer-to-peer file sending application that allows users to send files directly to each other without going through a central server.
+中央サーバーを介さずに、ユーザー間で直接ファイルを送信できるP2P（ピアツーピア）ファイル転送アプリケーションです。
 
-## Features
+## 主な機能
 
-- Peer-to-peer file transfer
-- Simple and intuitive user interface
+- P2Pによるファイル転送
+- シンプルで直感的なユーザーインターフェース
 
-## Technologies Used
+## 使用技術
 
-- **Frontend:**
+- **フロントエンド:**
   - React
   - TypeScript
-  - PeerJS (for WebRTC)
-- **Backend:**
+  - PeerJS (WebRTC)
+- **バックエンド:**
   - Node.js
   - Express
   - PeerJS Server
-- **Styling:**
+- **スタイリング:**
   - CSS
 
-## Installation and Usage
+## インストールと実行方法
 
-1.  **Clone the repository:**
+1.  **リポジトリをクローンします:**
     ```bash
     git clone https://github.com/mina-ima/p2psend.git
     cd p2psend
     ```
 
-2.  **Install dependencies:**
+2.  **依存関係をインストールします:**
     ```bash
     npm install
     ```
 
-3.  **Start the PeerJS server:**
-    In a separate terminal, run the following command to start the PeerJS server.
+3.  **PeerJSサーバーを起動します:**
+    別のターミナルで以下のコマンドを実行し、PeerJSサーバーを起動します。
     ```bash
     npm run server
     ```
 
-4.  **Start the React application:**
+4.  **Reactアプリケーションを起動します:**
     ```bash
     npm start
     ```
-    Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+    ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
 
-## Available Scripts
+## 利用可能なスクリプト
 
--   `npm start`: Runs the app in development mode.
--   `npm run build`: Builds the app for production.
--   `npm test`: Launches the test runner.
--   `npm run server`: Starts the PeerJS server.
+-   `npm start`: 開発モードでアプリケーションを実行します。
+-   `npm run build`: 本番用にアプリケーションをビルドします。
+-   `npm test`: テストランナーを起動します。
+-   `npm run server`: PeerJSサーバーを起動します。
