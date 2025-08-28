@@ -1,5 +1,7 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import Peer from 'peerjs';
+import { QRCodeCanvas } from 'qrcode.react'; // Corrected import
+import { Scanner } from '@yudiel/react-qr-scanner';
 import './App.css';
 
 function App() {
@@ -10,6 +12,7 @@ function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [receivedFiles, setReceivedFiles] = useState<{ name: string; url: string }[]>([]);
   const [notification, setNotification] = useState('');
+  const [scanResult, setScanResult] = useState<string | null>(null);
 
   useEffect(() => {
     const newPeer = new Peer({
@@ -101,36 +104,79 @@ function App() {
     }
   };
 
+  const handleScan = (result: any) => {
+    if (result) {
+      setScanResult(result.text);
+      setRemoteId(result.text); // Automatically set remoteId from scan
+      console.log('QR Code Scanned:', result.text);
+    }
+  };
+
+  const handleError = (err: any) => {
+    console.error('QR Scanner Error:', err);
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <h1>P2P Send</h1>
-        <p>My ID: {myId}</p>
         {notification && <div className="notification">{notification}</div>}
-        <div>
-          <input
-            type="text"
-            placeholder="Remote Peer ID"
-            value={remoteId}
-            onChange={(e) => setRemoteId(e.target.value)}
-          />
-          <button onClick={connectToPeer}>Connect</button>
+
+        <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%', maxWidth: '800px', margin: '20px 0' }}>
+          <div style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '8px', margin: '0 10px' }}>
+            <h2>My ID (Share this QR)</h2>
+            <p>My ID: <strong>{myId}</strong></p>
+            {myId && (
+              <div style={{ background: 'white', padding: '10px', display: 'inline-block' }}>
+                <QRCodeCanvas value={myId} size={128} level="H" />
+              </div>
+            )}
+          </div>
+
+          <div style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '8px', margin: '0 10px' }}>
+            <h2>Scan Remote ID</h2>
+            <div style={{ width: '100%', maxWidth: '300px', margin: '0 auto' }}>
+              <Scanner
+                onScan={handleScan}
+                onError={handleError}
+                constraints={{ facingMode: 'environment' }}
+                styles={{ container: { width: '100%', height: 'auto' }, video: { width: '100%', height: 'auto' } }}
+              />
+            </div>
+            {scanResult && <p>Scanned ID: <strong>{scanResult}</strong></p>}
+          </div>
         </div>
+
+        {!connection && (
+          <div style={{ marginTop: '20px' }}>
+            <input
+              type="text"
+              placeholder="Enter Remote Peer ID manually"
+              value={remoteId}
+              onChange={(e) => setRemoteId(e.target.value)}
+              style={{ padding: '8px', marginRight: '10px', width: '250px' }}
+            />
+            <button onClick={connectToPeer} disabled={!peer || !remoteId} style={{ padding: '8px 15px' }}>
+              Connect
+            </button>
+          </div>
+        )}
+
         {connection && (
-          <div>
-            <p>Connected to: {connection.peer}</p>
+          <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px', width: '100%', maxWidth: '800px' }}>
+            <h2>Connected to: {connection.peer}</h2>
             <div>
-              <input type="file" onChange={handleFileChange} />
-              <button onClick={sendFile} disabled={!selectedFile}>
+              <input type="file" onChange={handleFileChange} style={{ marginRight: '10px' }} />
+              <button onClick={sendFile} disabled={!selectedFile} style={{ padding: '8px 15px' }}>
                 Send File
               </button>
             </div>
-            <div>
+            <div style={{ marginTop: '20px' }}>
               <h3>Received Files:</h3>
               <ul>
                 {receivedFiles.map((file, index) => (
-                  <li key={index}>
-                    <a href={file.url} download={file.name}>
+                  <li key={index} style={{ marginBottom: '5px' }}>
+                    <a href={file.url} download={file.name} style={{ color: '#61dafb', textDecoration: 'none' }}>
                       {file.name}
                     </a>
                   </li>
