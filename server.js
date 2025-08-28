@@ -1,21 +1,18 @@
 const express = require('express');
-const { PeerServer } = require('peerjs-server');
+const http = require('http');
+const { ExpressPeerServer } = require('peer');
 const cors = require('cors');
-const http = require('http'); // Import http module
 
 const app = express();
-app.use(cors()); // Enable CORS for all routes
+app.use(cors());
 
-// Create an HTTP server from the Express app
 const server = http.createServer(app);
 
-// Start the HTTP server
-server.listen(9000, () => {
-  console.log('Express server listening on port 9000');
+const peerServer = ExpressPeerServer(server, {
+  debug: true,
 });
 
-// Pass the HTTP server to PeerServer
-const peerServer = PeerServer({ debug: 3, path: '/peerjs' }, server); // Pass the server and specify path
+app.use('/peerjs', peerServer);
 
 peerServer.on('connection', (client) => {
   console.log('Client connected:', client.id);
@@ -25,4 +22,6 @@ peerServer.on('disconnect', (client) => {
   console.log('Client disconnected:', client.id);
 });
 
-console.log('PeerJS server integrated with Express app.');
+server.listen(9000, () => {
+  console.log('Express server with PeerJS is running on port 9000');
+});
