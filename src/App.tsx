@@ -9,6 +9,7 @@ function App() {
   const [connection, setConnection] = useState<any>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [receivedFiles, setReceivedFiles] = useState<{ name: string; url: string }[]>([]);
+  const [notification, setNotification] = useState('');
 
   useEffect(() => {
     const newPeer = new Peer({
@@ -23,21 +24,24 @@ function App() {
       console.log('My peer ID is:', id);
     });
 
-    newPeer.on('connection', (conn) => {
+    const handleNewConnection = (conn: any) => {
       console.log('Incoming connection from:', conn.peer);
       setConnection(conn);
       conn.on('data', (data: any) => {
-        // Assuming data is { file: ArrayBuffer, fileName: string, type: string }
         const { file, fileName, type } = data;
         const blob = new Blob([file], { type });
         const url = URL.createObjectURL(blob);
         setReceivedFiles((prevFiles) => [...prevFiles, { name: fileName, url }]);
+        setNotification(`File received: ${fileName}`);
+        setTimeout(() => setNotification(''), 3000); // Notification disappears after 3 seconds
         console.log('File received:', fileName);
       });
       conn.on('open', () => {
         console.log('Connection opened with:', conn.peer);
       });
-    });
+    };
+
+    newPeer.on('connection', handleNewConnection);
 
     newPeer.on('error', (err) => {
       console.error('Peer error:', err);
@@ -56,11 +60,13 @@ function App() {
     if (peer && remoteId) {
       const conn = peer.connect(remoteId);
       setConnection(conn);
-       conn.on('data', (data: any) => {
+      conn.on('data', (data: any) => {
         const { file, fileName, type } = data;
         const blob = new Blob([file], { type });
         const url = URL.createObjectURL(blob);
         setReceivedFiles((prevFiles) => [...prevFiles, { name: fileName, url }]);
+        setNotification(`File received: ${fileName}`);
+        setTimeout(() => setNotification(''), 3000);
         console.log('File received:', fileName);
       });
       conn.on('open', () => {
@@ -80,7 +86,6 @@ function App() {
 
   const sendFile = () => {
     if (connection && selectedFile) {
-      // To send a file, we need to read it as an ArrayBuffer
       const reader = new FileReader();
       reader.onload = (event) => {
         const fileData = event.target?.result;
@@ -101,6 +106,7 @@ function App() {
       <header className="App-header">
         <h1>P2P Send</h1>
         <p>My ID: {myId}</p>
+        {notification && <div className="notification">{notification}</div>}
         <div>
           <input
             type="text"
