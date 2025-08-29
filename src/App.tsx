@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
-import Peer from 'peerjs';
+import Peer, { PeerJSOption } from 'peerjs';
 import { QRCodeCanvas } from 'qrcode.react'; // Corrected import
 import { Scanner } from '@yudiel/react-qr-scanner';
 import './App.css';
@@ -81,7 +81,7 @@ function App() {
     const peerJsServerUrl = process.env.REACT_APP_PEERJS_SERVER_URL;
     console.log("REACT_APP_PEERJS_SERVER_URL:", peerJsServerUrl); // ★追加
 
-    let peerConfig: Peer.PeerJSOption = { debug: 3 };
+    let peerConfig: PeerJSOption = { debug: 3 };
 
     if (peerJsServerUrl) {
       try {
