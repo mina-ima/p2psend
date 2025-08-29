@@ -89,7 +89,7 @@ function App() {
         peerConfig = {
           host: url.hostname,
           port: url.port ? parseInt(url.port) : (url.protocol === 'https:' ? 443 : 80),
-          path: url.pathname,
+          path: '/peerjs', // PeerJSサーバーのデフォルトパスに設定
           secure: url.protocol === 'https:',
           debug: 3,
         };
