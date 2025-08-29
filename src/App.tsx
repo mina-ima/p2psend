@@ -261,7 +261,7 @@ function App() {
         </div>
 
         {!connection && (
-          <div style={{ marginTop: '20px' }}>
+          <div className="connection-controls" style={{ marginTop: '20px' }}>
             <input
               type="text"
               placeholder="Enter Remote Peer ID manually"
@@ -278,7 +278,7 @@ function App() {
         {connection && (
           <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px', width: '100%', maxWidth: '800px' }}>
             <h2>Connected to: {connection.peer}</h2>
-            <div>
+            <div className="file-transfer-controls">
               <input type="file" onChange={handleFileChange} multiple style={{ marginRight: '10px' }} />
               <button onClick={sendFile} disabled={selectedFiles.length === 0} style={{ padding: '8px 15px' }}>
                 Send File

@@ -67,4 +67,18 @@
     width: 90%; /* Adjust width for stacked items */
     margin: 10px 0; /* Adjust margin for stacked items */
   }
+
+  .connection-controls input[type="text"],
+  .file-transfer-controls input[type="file"],
+  .connection-controls button,
+  .file-transfer-controls button {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px; /* Add some space between stacked elements */
+  }
+
+  .connection-controls button,
+  .file-transfer-controls button {
+    padding: 12px 15px; /* Slightly larger touch target */
+  }
 }
