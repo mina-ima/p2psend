@@ -287,7 +287,7 @@ function App() {
                 <p>{selectedFiles.length} file(s) selected.</p>
               )}
             </div>
-            <div style={{ marginTop: '20px' }}>
+            <div className="received-files-section" style={{ marginTop: '20px' }}>
               <h3>Received Files:</h3>
               <ul>
                 {receivedFiles.map((file, index) => (
