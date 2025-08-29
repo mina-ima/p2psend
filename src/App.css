@@ -48,3 +48,23 @@
   z-index: 1000;
   font-size: 16px;
 }
+
+.main-content-container {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px 0;
+}
+
+@media (max-width: 768px) {
+  .main-content-container {
+    flex-direction: column;
+    align-items: center; /* Center items when stacked */
+  }
+
+  .main-content-container > div {
+    width: 90%; /* Adjust width for stacked items */
+    margin: 10px 0; /* Adjust margin for stacked items */
+  }
+}

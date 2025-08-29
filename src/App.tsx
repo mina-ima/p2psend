@@ -235,7 +235,7 @@ function App() {
         <h1>P2P Send</h1>
         {notification && <div className="notification">{notification}</div>}
 
-        <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%', maxWidth: '800px', margin: '20px 0' }}>
+        <div className="main-content-container" style={{ display: 'flex', justifyContent: 'space-around', width: '100%', maxWidth: '800px', margin: '20px 0' }}>
           <div style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '8px', margin: '0 10px' }}>
             <h2>My ID (Share this QR)</h2>
             <p>My ID: <strong>{myId}</strong></p>
