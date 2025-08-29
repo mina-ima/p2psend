@@ -78,12 +78,38 @@ function App() {
 
 
   useEffect(() => {
-    const newPeer = new Peer({
-      host: window.location.hostname,
-      port: 9000,
-      path: '/peerjs',
-      debug: 3,
-    });
+    const peerJsServerUrl = process.env.REACT_APP_PEERJS_SERVER_URL;
+    console.log("REACT_APP_PEERJS_SERVER_URL:", peerJsServerUrl); // ★追加
+
+    let peerConfig: Peer.PeerJSOption = { debug: 3 };
+
+    if (peerJsServerUrl) {
+      try {
+        const url = new URL(peerJsServerUrl);
+        peerConfig = {
+          host: url.hostname,
+          port: url.port ? parseInt(url.port) : (url.protocol === 'https:' ? 443 : 80),
+          path: url.pathname,
+          secure: url.protocol === 'https:',
+          debug: 3,
+        };
+      } catch (e) {
+        console.error("Invalid REACT_APP_PEERJS_SERVER_URL:", peerJsServerUrl, e);
+        // Fallback to default or handle error appropriately
+      }
+    } else {
+      // Fallback to default local configuration if environment variable is not set
+      peerConfig = {
+        host: window.location.hostname,
+        port: 9000,
+        path: '/peerjs',
+        debug: 3,
+      };
+    }
+
+    console.log("Peer Config:", peerConfig); // ★追加
+
+    const newPeer = new Peer(peerConfig);
 
     newPeer.on('open', (id) => {
       setMyId(id);
