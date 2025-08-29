@@ -49,13 +49,10 @@
   font-size: 16px;
 }
 
-.main-content-container {
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  max-width: 800px;
-  margin: 20px 0;
-}
+  header .main-content-container {
+    flex-direction: column !important;
+    align-items: center; /* Center items when stacked */
+  }
 
 .content-section {
   flex: 1;
