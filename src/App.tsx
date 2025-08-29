@@ -236,19 +236,19 @@ function App() {
         {notification && <div className="notification">{notification}</div>}
 
         <div className="main-content-container" style={{ display: 'flex', justifyContent: 'space-around', width: '100%', maxWidth: '800px', margin: '20px 0' }}>
-          <div style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '8px', margin: '0 10px' }}>
+          <div className="content-section">
             <h2>My ID (Share this QR)</h2>
             <p>My ID: <strong>{myId}</strong></p>
             {myId && (
-              <div className="qr-code-canvas-container" style={{ background: 'white', padding: '10px', display: 'inline-block' }}>
+              <div className="qr-code-canvas-container">
                 <QRCodeCanvas value={myId} size={128} level="H" />
               </div>
             )}
           </div>
 
-          <div style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '8px', margin: '0 10px' }}>
+          <div className="content-section">
             <h2>Scan Remote ID</h2>
-            <div className="qr-scanner-container" style={{ width: '100%', maxWidth: '300px', margin: '0 auto' }}>
+            <div className="qr-scanner-container">
               <Scanner
                 onScan={handleScan}
                 onError={handleError}
@@ -261,26 +261,26 @@ function App() {
         </div>
 
         {!connection && (
-          <div className="connection-controls" style={{ marginTop: '20px' }}>
+          <div className="connection-controls">
             <input
               type="text"
               placeholder="Enter Remote Peer ID manually"
               value={remoteId}
               onChange={(e) => setRemoteId(e.target.value)}
-              style={{ padding: '8px', marginRight: '10px', width: '250px' }}
+              className="manual-id-input"
             />
-            <button onClick={connectToPeer} disabled={!peer || !remoteId} style={{ padding: '8px 15px' }}>
+            <button onClick={connectToPeer} disabled={!peer || !remoteId} className="connect-button">
               Connect
             </button>
           </div>
         )}
 
         {connection && (
-          <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '20px', width: '100%', maxWidth: '800px' }}>
+          <div className="connected-app-section">
             <h2>Connected to: {connection.peer}</h2>
             <div className="file-transfer-controls">
-              <input type="file" onChange={handleFileChange} multiple style={{ marginRight: '10px' }} />
-              <button onClick={sendFile} disabled={selectedFiles.length === 0} style={{ padding: '8px 15px' }}>
+              <input type="file" onChange={handleFileChange} multiple className="file-input" />
+              <button onClick={sendFile} disabled={selectedFiles.length === 0} className="send-file-button">
                 Send File
               </button>
               {selectedFiles.length > 0 && (
@@ -291,8 +291,8 @@ function App() {
               <h3>Received Files:</h3>
               <ul>
                 {receivedFiles.map((file, index) => (
-                  <li key={index} style={{ marginBottom: '5px' }}>
-                    <a href={file.url} download={file.name} style={{ color: '#61dafb', textDecoration: 'none' }}>
+                  <li key={index} className="received-file-item">
+                    <a href={file.url} download={file.name} className="received-file-link">
                       {file.name}
                     </a>
                   </li>
