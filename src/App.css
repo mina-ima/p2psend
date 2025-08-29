@@ -81,4 +81,9 @@
   .file-transfer-controls button {
     padding: 12px 15px; /* Slightly larger touch target */
   }
+
+  .qr-code-canvas-container canvas {
+    width: 100% !important; /* Make QR code canvas fill its container */
+    height: auto !important;
+  }
 }

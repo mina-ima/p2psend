@@ -240,7 +240,7 @@ function App() {
             <h2>My ID (Share this QR)</h2>
             <p>My ID: <strong>{myId}</strong></p>
             {myId && (
-              <div style={{ background: 'white', padding: '10px', display: 'inline-block' }}>
+              <div className="qr-code-canvas-container" style={{ background: 'white', padding: '10px', display: 'inline-block' }}>
                 <QRCodeCanvas value={myId} size={128} level="H" />
               </div>
             )}
@@ -248,7 +248,7 @@ function App() {
 
           <div style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '8px', margin: '0 10px' }}>
             <h2>Scan Remote ID</h2>
-            <div style={{ width: '100%', maxWidth: '300px', margin: '0 auto' }}>
+            <div className="qr-scanner-container" style={{ width: '100%', maxWidth: '300px', margin: '0 auto' }}>
               <Scanner
                 onScan={handleScan}
                 onError={handleError}
