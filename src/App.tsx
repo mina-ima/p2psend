@@ -140,6 +140,10 @@ function App() {
       conn.on('open', () => {
         console.log('Connection opened with:', conn.peer);
       });
+      conn.on('close', () => { // ★追加
+        console.log('Connection closed with:', conn.peer);
+        setConnection(null); // 接続がクローズされたらconnectionステートをリセット
+      });
     };
 
     newPeer.on('connection', handleNewConnection);
@@ -167,6 +171,11 @@ function App() {
       });
       conn.on('error', (err) => {
         console.error('Connection error:', err);
+        setConnection(null); // エラーが発生したらconnectionステートをリセット
+      });
+      conn.on('close', () => { // ★追加
+        console.log('Connection closed with:', conn.peer);
+        setConnection(null); // 接続がクローズされたらconnectionステートをリセット
       });
     }
   };
