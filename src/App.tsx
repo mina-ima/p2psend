@@ -85,8 +85,20 @@ function App() {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
-        // 無料のTURNサーバー (安定性は保証されません)
+        // 既存のTURNサーバー (安定性は保証されません)
         { urls: 'turn:numb.viagenie.ca', username: 'webrtc@live.com', credential: 'muazkh' },
+        // 追加の無料STUN/TURNサーバー (安定性は保証されません)
+        { urls: 'stun:stun.nextcloud.com:443' },
+        { urls: 'stun:stun.voip.ms:3478' },
+        { urls: 'stun:stun.sipgate.net:10000' },
+        { urls: 'stun:stun.ekiga.net' },
+        { urls: 'stun:stun.ideasip.com' },
+        { urls: 'stun:stun.schlund.de' },
+        { urls: 'stun:stun.rixtelecom.se' },
+        { urls: 'stun:stun.softjoys.com' },
+        { urls: 'stun:stun.stunprotocol.org' },
+        { urls: 'stun:stun.voipbuster.com' },
+        { urls: 'stun:stun.voxgratia.org' },
       ],
     };
 
