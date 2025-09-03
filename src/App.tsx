@@ -91,6 +91,8 @@ function App() {
         { urls: 'stun:stun.sipgate.net:3478' },
         { urls: 'stun:stun.voip.ms:3478' },
         { urls: 'stun:stun.ekiga.net' },
+        // デバッグ目的で一時的に無料TURNサーバーを再追加 (安定性は保証されません)
+        { urls: 'turn:numb.viagenie.ca', username: 'webrtc@live.com', credential: 'muazkh' },
       ],
     };
 
