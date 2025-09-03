@@ -85,6 +85,8 @@ function App() {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
+        // 無料のTURNサーバー (安定性は保証されません)
+        { urls: 'turn:numb.viagenie.ca', username: 'webrtc@live.com', credential: 'muazkh' },
       ],
     };
 
