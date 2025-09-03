@@ -90,15 +90,18 @@ function App() {
 
     let peerConfig: PeerJSOption = { debug: 3, config: iceConfig };
 
+    
+
     if (peerJsServerUrl) {
       try {
         const url = new URL(peerJsServerUrl);
         peerConfig = {
           host: url.hostname,
           port: url.port ? parseInt(url.port) : (url.protocol === 'https:' ? 443 : 80),
-          path: '/peerjs', // PeerJSサーバーのデフォルトパスに設定
+          path: '/peerjs',
           secure: url.protocol === 'https:',
           debug: 3,
+          config: iceConfig, // ここにiceConfigを追加
         };
       } catch (e) {
         console.error("Invalid REACT_APP_PEERJS_SERVER_URL:", peerJsServerUrl, e);
@@ -111,6 +114,7 @@ function App() {
         port: 9000,
         path: '/peerjs',
         debug: 3,
+        config: iceConfig, // ここにもiceConfigを追加
       };
     }
 
