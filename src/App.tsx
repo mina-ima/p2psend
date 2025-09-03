@@ -94,7 +94,7 @@ function App() {
       ],
     };
 
-    let peerConfig: PeerJSOption = { debug: 3, config: iceConfig };
+    let peerConfig: PeerJSOption = { debug: 4, config: iceConfig };
 
     
 
@@ -106,7 +106,7 @@ function App() {
           port: url.port ? parseInt(url.port) : (url.protocol === 'https:' ? 443 : 80),
           path: '/peerjs',
           secure: url.protocol === 'https:',
-          debug: 3,
+          debug: 4,
           config: iceConfig, // ここにiceConfigを追加
         };
       } catch (e) {
