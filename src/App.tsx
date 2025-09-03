@@ -81,7 +81,14 @@ function App() {
     const peerJsServerUrl = process.env.REACT_APP_PEERJS_SERVER_URL;
     console.log("REACT_APP_PEERJS_SERVER_URL:", peerJsServerUrl); // ★追加
 
-    let peerConfig: PeerJSOption = { debug: 3 };
+    const iceConfig = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+      ],
+    };
+
+    let peerConfig: PeerJSOption = { debug: 3, config: iceConfig };
 
     if (peerJsServerUrl) {
       try {
